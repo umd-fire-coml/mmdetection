@@ -82,10 +82,11 @@ def get_dataset(data_cfg):
     if isinstance(data_cfg['ann_file'], (list, tuple)):
         ann_files = data_cfg['ann_file']
         num_dset = len(ann_files)
+        
     else:
         ann_files = [data_cfg['ann_file']]
         num_dset = 1
-
+    
     if 'proposal_file' in data_cfg.keys():
         if isinstance(data_cfg['proposal_file'], (list, tuple)):
             proposal_files = data_cfg['proposal_file']

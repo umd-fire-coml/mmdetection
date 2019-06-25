@@ -77,12 +77,18 @@ def coco_classes():
         'scissors', 'teddy_bear', 'hair_drier', 'toothbrush'
     ]
 
+def kitti_classes():
+    return [
+        'Cyclist','Tram','Person_sitting','Truck','Pedestrian','Van','Car','Misc','DontCare'
+    ]
+
 
 dataset_aliases = {
     'voc': ['voc', 'pascal_voc', 'voc07', 'voc12'],
     'imagenet_det': ['det', 'imagenet_det', 'ilsvrc_det'],
     'imagenet_vid': ['vid', 'imagenet_vid', 'ilsvrc_vid'],
-    'coco': ['coco', 'mscoco', 'ms_coco']
+    'coco': ['coco', 'mscoco', 'ms_coco'],
+    'kitti':['kitti']
 }
 
 

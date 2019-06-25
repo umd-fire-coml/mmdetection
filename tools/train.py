@@ -74,8 +74,8 @@ def main():
 
     model = build_detector(
         cfg.model, train_cfg=cfg.train_cfg, test_cfg=cfg.test_cfg)
-
     train_dataset = get_dataset(cfg.data.train)
+    
     if cfg.checkpoint_config is not None:
         # save mmdet version, config file content and class names in
         # checkpoints as meta data
@@ -85,6 +85,7 @@ def main():
             CLASSES=train_dataset.CLASSES)
     # add an attribute for visualization convenience
     model.CLASSES = train_dataset.CLASSES
+    
     train_detector(
         model,
         train_dataset,

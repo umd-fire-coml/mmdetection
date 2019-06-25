@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from mmdet.core import delta2bbox, multiclass_nms, bbox_target
+from mmdet.core import delta2bbox, multiclass_nms, bbox_target, multiclass_nmsv2
 from ..builder import build_loss
 from ..losses import accuracy
 from ..registry import HEADS
@@ -19,7 +19,7 @@ class BBoxHead(nn.Module):
                  with_reg=True,
                  roi_feat_size=7,
                  in_channels=256,
-                 num_classes=81,
+                 num_classes=9,
                  target_means=[0., 0., 0., 0.],
                  target_stds=[0.1, 0.1, 0.2, 0.2],
                  reg_class_agnostic=False,
@@ -148,7 +148,31 @@ class BBoxHead(nn.Module):
                                                     cfg.max_per_img)
 
             return det_bboxes, det_labels
+        
+    def get_det_bboxesv2(self, rois, cls_score, bbox_pred, conv ,img_shape, scale_factor, rescale=False, cfg=None):
+        if isinstance(cls_score, list):
+            cls_score = sum(cls_score) / float(len(cls_score))
+        scores = F.softmax(cls_score, dim=1) if cls_score is not None else None
 
+        if bbox_pred is not None:
+            bboxes = delta2bbox(rois[:, 1:], bbox_pred, self.target_means,
+                                self.target_stds, img_shape)
+        else:
+            bboxes = rois[:, 1:]
+            # TODO: add clip here
+
+        if rescale:
+            bboxes /= scale_factor
+
+        if cfg is None:
+            return bboxes, scores
+        else:
+            det_bboxes, det_labels, det_conv = multiclass_nmsv2(bboxes, conv, scores,
+                                                    cfg.score_thr, cfg.nms,
+                                                    cfg.max_per_img)
+
+            return det_bboxes, det_labels, det_conv
+        
     def refine_bboxes(self, rois, labels, bbox_preds, pos_is_gts, img_metas):
         """Refine bboxes during training.
 

@@ -155,6 +155,26 @@ def bbox2result(bboxes, labels, num_classes):
         labels = labels.cpu().numpy()
         return [bboxes[labels == i, :] for i in range(num_classes - 1)]
 
+def every2result(bboxes, labels, convfeat, num_classes):
+    """Convert detection results to a list of numpy arrays.
+
+    Args:
+        bboxes (Tensor): shape (n, 5)
+        labels (Tensor): shape (n, )
+        num_classes (int): class number, including background class
+
+    Returns:
+        list(ndarray): bbox results of each class
+    """
+    if bboxes.shape[0] == 0:
+        return [
+            np.zeros((0, 5), dtype=np.float32) for i in range(num_classes - 1)
+        ]
+    else:
+        bboxes = bboxes.cpu().numpy()
+        labels = labels.cpu().numpy() 
+        convfeat = convfeat.cpu().numpy()
+        return [bboxes[labels == i, :] for i in range(num_classes - 1)],[convfeat[labels == i, :] for i in range(num_classes - 1)] # i believe this sorts by class index
 
 def distance2bbox(points, distance, max_shape=None):
     """Decode distance prediction to bounding box.

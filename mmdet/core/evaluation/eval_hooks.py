@@ -91,7 +91,8 @@ class DistEvalmAPHook(DistEvalHook):
                 ])
                 gt_ignore.append(ignore)
                 bboxes = np.vstack([bboxes, ann['bboxes_ignore']])
-                labels = np.concatenate([labels, ann['labels_ignore']])
+                #print(ann['labels_ignore'])
+                #labels = np.concatenate([labels, ann['labels_ignore']])
             gt_bboxes.append(bboxes)
             gt_labels.append(labels)
         # If the dataset is VOC2007, then use 11 points mAP evaluation.

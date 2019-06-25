@@ -138,6 +138,12 @@ def _dist_train(model, dataset, cfg, validate=False):
             dataset,
             cfg.data.imgs_per_gpu,
             cfg.data.workers_per_gpu,
+            dist=True),
+       # Extra worker added
+        build_dataloader(
+            dataset,
+            cfg.data.imgs_per_gpu,
+            cfg.data.workers_per_gpu,
             dist=True)
     ]
     # put model on gpus
@@ -153,13 +159,14 @@ def _dist_train(model, dataset, cfg, validate=False):
     runner.register_hook(DistSamplerSeedHook())
     # register eval hooks
     if validate:
+        print("got here")
         val_dataset_cfg = cfg.data.val
         if isinstance(model.module, RPN):
             # TODO: implement recall hooks for other datasets
             runner.register_hook(CocoDistEvalRecallHook(val_dataset_cfg))
         else:
             dataset_type = getattr(datasets, val_dataset_cfg.type)
-            if issubclass(dataset_type, datasets.CocoDataset):
+            if issubclass(dataset_type, datasets.CocoDataset) or isinstance(dataset_type, datasets.KittiDataset):
                 runner.register_hook(CocoDistEvalmAPHook(val_dataset_cfg))
             else:
                 runner.register_hook(DistEvalmAPHook(val_dataset_cfg))
@@ -174,6 +181,12 @@ def _dist_train(model, dataset, cfg, validate=False):
 def _non_dist_train(model, dataset, cfg, validate=False):
     # prepare data loaders
     data_loaders = [
+        build_dataloader(
+            dataset,
+            cfg.data.imgs_per_gpu,
+            cfg.data.workers_per_gpu,
+            cfg.gpus,
+            dist=False),
         build_dataloader(
             dataset,
             cfg.data.imgs_per_gpu,

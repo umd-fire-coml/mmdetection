@@ -203,7 +203,6 @@ class CustomDataset(Dataset):
         # skip the image if there is no valid gt bbox
         if len(gt_bboxes) == 0:
             return None
-
         # extra augmentation
         if self.extra_aug is not None:
             img, gt_bboxes, gt_labels = self.extra_aug(img, gt_bboxes,

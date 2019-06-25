@@ -78,6 +78,7 @@ def fast_eval_recall(results,
 
 def xyxy2xywh(bbox):
     _bbox = bbox.tolist()
+    
     return [
         _bbox[0],
         _bbox[1],
@@ -101,7 +102,7 @@ def proposal2json(dataset, results):
     return json_results
 
 
-def det2json(dataset, results):
+def det2json(dataset, results): 
     json_results = []
     for idx in range(len(dataset)):
         img_id = dataset.img_ids[idx]
@@ -114,9 +115,29 @@ def det2json(dataset, results):
                 data['bbox'] = xyxy2xywh(bboxes[i])
                 data['score'] = float(bboxes[i][4])
                 data['category_id'] = dataset.cat_ids[label]
+                data['conv'] = 1
                 json_results.append(data)
     return json_results
 
+def det2jsonv2(dataset, results): # results is a list of tuples
+    
+    json_results = []
+    for idx in range(len(dataset)):
+        img_id = dataset.img_ids[idx]
+        result = results[idx]
+        for label in range(len(result)):
+            bboxes = result[label][0]
+            conv = result[label][1]
+            for i in range(bboxes.shape[0]):
+                data = dict()
+                data['image_id'] = img_id
+                data['bbox'] = xyxy2xywh(bboxes[i])
+                data['score'] = float(bboxes[i][4])
+                data['category_id'] = dataset.cat_ids[label]
+                data['conv'] = conv
+                json_results.append(data)
+                
+    return json_results
 
 def segm2json(dataset, results):
     bbox_json_results = []
@@ -156,22 +177,31 @@ def segm2json(dataset, results):
 
 def results2json(dataset, results, out_file):
     result_files = dict()
-    if isinstance(results[0], list):
-        json_results = det2json(dataset, results)
-        result_files['bbox'] = '{}.{}.json'.format(out_file, 'bbox')
-        result_files['proposal'] = '{}.{}.json'.format(out_file, 'bbox')
-        mmcv.dump(json_results, result_files['bbox'])
-    elif isinstance(results[0], tuple):
-        json_results = segm2json(dataset, results)
-        result_files['bbox'] = '{}.{}.json'.format(out_file, 'bbox')
-        result_files['proposal'] = '{}.{}.json'.format(out_file, 'bbox')
-        result_files['segm'] = '{}.{}.json'.format(out_file, 'segm')
-        mmcv.dump(json_results[0], result_files['bbox'])
-        mmcv.dump(json_results[1], result_files['segm'])
-    elif isinstance(results[0], np.ndarray):
-        json_results = proposal2json(dataset, results)
-        result_files['proposal'] = '{}.{}.json'.format(out_file, 'proposal')
-        mmcv.dump(json_results, result_files['proposal'])
-    else:
-        raise TypeError('invalid type of results')
+    json_results = det2jsonv2(dataset, results)
+    result_files['bbox'] = '{}.{}.json'.format(out_file, 'bbox')
+    result_files['proposal'] = '{}.{}.json'.format(out_file, 'bbox')
+    mmcv.dump(json_results, result_files['bbox'])
+    '''
+        if isinstance(results[0], list):
+            print("option uno")
+            json_results = det2json(dataset, results)
+            result_files['bbox'] = '{}.{}.json'.format(out_file, 'bbox')
+            result_files['proposal'] = '{}.{}.json'.format(out_file, 'bbox')
+            mmcv.dump(json_results, result_files['bbox'])
+        elif isinstance(results[0], tuple):
+            print("option dos")
+            json_results = segm2json(dataset, results)
+            result_files['bbox'] = '{}.{}.json'.format(out_file, 'bbox')
+            result_files['proposal'] = '{}.{}.json'.format(out_file, 'bbox')
+            result_files['segm'] = '{}.{}.json'.format(out_file, 'segm')
+            mmcv.dump(json_results[0], result_files['bbox'])
+            mmcv.dump(json_results[1], result_files['segm'])
+        elif isinstance(results[0], np.ndarray):
+            print("option tres")
+            json_results = proposal2json(dataset, results)
+            result_files['proposal'] = '{}.{}.json'.format(out_file, 'proposal')
+            mmcv.dump(json_results, result_files['proposal'])
+        else:
+            raise TypeError('invalid type of results')
+    '''
     return result_files

@@ -31,7 +31,7 @@ class BasicBlock(nn.Module):
                  gcb=None,
                  gen_attention=None):
         super(BasicBlock, self).__init__()
-        assert dcn is None, "Not implemented yet."
+        assert dcn is None, "Not implemented yet." 
         assert gen_attention is None, "Not implemented yet."
         assert gcb is None, "Not implemented yet."
 

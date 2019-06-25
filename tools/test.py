@@ -24,6 +24,7 @@ def single_gpu_test(model, data_loader, show=False):
     for i, data in enumerate(data_loader):
         with torch.no_grad():
             result = model(return_loss=False, rescale=not show, **data)
+            print(result)
         results.append(result)
 
         if show:
@@ -193,7 +194,7 @@ def main():
                         result_file = args.out + '.{}'.format(name)
                         result_files = results2json(dataset, outputs_,
                                                     result_file)
-                        coco_eval(result_files, eval_types, dataset.coco)
+                        #coco_eval(result_files, eval_types, dataset.coco)
 
 
 if __name__ == '__main__':

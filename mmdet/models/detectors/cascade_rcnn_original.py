@@ -8,7 +8,7 @@ from .test_mixins import RPNTestMixin
 from .. import builder
 from ..registry import DETECTORS
 from mmdet.core import (build_assigner, bbox2roi, bbox2result, build_sampler,
-                        merge_aug_masks,every2result)
+                        merge_aug_masks)
 
 
 @DETECTORS.register_module
@@ -180,7 +180,7 @@ class CascadeRCNN(BaseDetector, RPNTestMixin):
                                             rois)
             if self.with_shared_head:
                 bbox_feats = self.shared_head(bbox_feats)
-            cls_score, bbox_pred = bbox_head(bbox_feats) # most likely conv is here (not filtered)
+            cls_score, bbox_pred = bbox_head(bbox_feats) # most likely conv is here
 
             bbox_targets = bbox_head.get_target(sampling_results, gt_bboxes,
                                                 gt_labels, rcnn_train_cfg)
@@ -262,11 +262,7 @@ class CascadeRCNN(BaseDetector, RPNTestMixin):
             if self.with_shared_head:
                 bbox_feats = self.shared_head(bbox_feats)
 
-            cls_score, bbox_pred = bbox_head(bbox_feats)    # conv most likely is here
-            
-            if i == (self.num_stages - 1):                  # if at last stage
-                ms_bbox_result['conv'] = bbox_feats           # add bbox_feats to return 
-                
+            cls_score, bbox_pred = bbox_head(bbox_feats)
             ms_scores.append(cls_score)
 
             if self.test_cfg.keep_all_stages:
@@ -311,16 +307,6 @@ class CascadeRCNN(BaseDetector, RPNTestMixin):
                                                   img_meta[0])
 
         cls_score = sum(ms_scores) / self.num_stages
-        det_bboxes, det_labels, det_conv = self.bbox_head[-1].get_det_bboxesv2(
-            rois,
-            cls_score,
-            bbox_pred,
-            ms_bbox_result['conv'],
-            img_shape,
-            scale_factor,
-            rescale=rescale,
-            cfg=rcnn_test_cfg)
-        '''
         det_bboxes, det_labels = self.bbox_head[-1].get_det_bboxes(
             rois,
             cls_score,
@@ -329,11 +315,10 @@ class CascadeRCNN(BaseDetector, RPNTestMixin):
             scale_factor,
             rescale=rescale,
             cfg=rcnn_test_cfg)
-        '''
-        bbox_result, conv_result = every2result(det_bboxes, det_labels, det_conv, self.bbox_head[-1].num_classes)# changed from bbox2result
+        bbox_result = bbox2result(det_bboxes, det_labels,
+                                  self.bbox_head[-1].num_classes)
         ms_bbox_result['ensemble'] = bbox_result
-        
-        ''' # no neeeeeeeed --commented out
+
         if self.with_mask:
             if det_bboxes.shape[0] == 0:
                 segm_result = [
@@ -360,13 +345,13 @@ class CascadeRCNN(BaseDetector, RPNTestMixin):
                     merged_masks, _bboxes, det_labels, rcnn_test_cfg,
                     ori_shape, scale_factor, rescale)
             ms_segm_result['ensemble'] = segm_result
-        '''
+
         if not self.test_cfg.keep_all_stages:
             if self.with_mask:
                 results = (ms_bbox_result['ensemble'],
                            ms_segm_result['ensemble'])
             else:
-                results = ms_bbox_result['ensemble'] #the return is ensemble
+                results = ms_bbox_result['ensemble']
         else:
             if self.with_mask:
                 results = {
@@ -374,9 +359,9 @@ class CascadeRCNN(BaseDetector, RPNTestMixin):
                     for stage in ms_bbox_result
                 }
             else:
-                
                 results = ms_bbox_result
-        return results,conv_result
+
+        return results
 
     def aug_test(self, img, img_meta, proposals=None, rescale=False):
         raise NotImplementedError
@@ -392,34 +377,3 @@ class CascadeRCNN(BaseDetector, RPNTestMixin):
                 result = result['ensemble']
         super(CascadeRCNN, self).show_result(data, result, img_norm_cfg,
                                              **kwargs)
-
-    '''
-    # Overriding bbox2result:
-    
-    def bbox2result(bboxes, labels, num_classes, conv = None): # NEW parameter (conv), = None to not mess anything else up
-    """Convert detection results to a list of numpy arrays.
-
-    Args:
-        bboxes (Tensor): shape (n, 5)
-        labels (Tensor): shape (n, )
-        num_classes (int): class number, including background class
-
-    Returns:
-        list(ndarray): bbox results of each class
-    """
-    if bboxes.shape[0] == 0:
-        return [
-            np.zeros((0, 5), dtype=np.float32) for i in range(num_classes - 1)
-        ]
-    else:
-        bboxes = bboxes.cpu().numpy()
-        labels = labels.cpu().numpy()
-        bbox_array = [bboxes[labels == i, :] for i in range(num_classes - 1)] # this is the original return statement
-    
-        if conv is not None:
-            final_bbox_array = [bbox_array, conv] #essentially appending the conv feature, need to be more specific than this?
-            return final_bbox_array 
-            
-        else: 
-            return bbox_array # original return statement
-    '''
