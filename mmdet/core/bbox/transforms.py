@@ -174,7 +174,7 @@ def every2result(bboxes, labels, convfeat, num_classes):
         bboxes = bboxes.cpu().numpy()
         labels = labels.cpu().numpy() 
         convfeat = convfeat.cpu().numpy()
-        return [bboxes[labels == i, :] for i in range(num_classes - 1)],[convfeat[labels == i, :] for i in range(num_classes - 1)] # i believe this sorts by class index
+        return [{'bbox':bboxes[labels == i, :],'feat':convfeat[labels==i,:]} for i in range(num_classes - 1)]
 
 def distance2bbox(points, distance, max_shape=None):
     """Decode distance prediction to bounding box.

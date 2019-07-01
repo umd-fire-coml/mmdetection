@@ -178,4 +178,4 @@ log_level = 'INFO'
 work_dir = './work_dirs/mask_rcnn_r50_fpn_1x'
 load_from = None
 resume_from = None
-workflow = [('train', 1)]
+workflow = [('train', 1),('val',2)]

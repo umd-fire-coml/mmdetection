@@ -2,7 +2,7 @@ import mmcv
 import numpy as np
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
-
+from six.moves import cPickle as pkl
 from .recall import eval_recalls
 
 
@@ -126,15 +126,17 @@ def det2jsonv2(dataset, results): # results is a list of tuples
         img_id = dataset.img_ids[idx]
         result = results[idx]
         for label in range(len(result)):
-            bboxes = result[label][0]
-            conv = result[label][1]
-            for i in range(bboxes.shape[0]):
+            dobbaf=result[label] #dictionary of bboxes and feats 
+            if not dobbaf:
+                print(type(dobbaf))
+                continue
+            for i in range(dobbaf['bbox'].shape[0]):
                 data = dict()
                 data['image_id'] = img_id
-                data['bbox'] = xyxy2xywh(bboxes[i])
-                data['score'] = float(bboxes[i][4])
+                data['bbox'] = xyxy2xywh(dobbaf['bbox'][i])
+                data['score'] = float(dobbaf['bbox'][i][4])
                 data['category_id'] = dataset.cat_ids[label]
-                data['conv'] = conv
+                data['conv'] = dobbaf['feat'][i]
                 json_results.append(data)
                 
     return json_results
@@ -178,9 +180,7 @@ def segm2json(dataset, results):
 def results2json(dataset, results, out_file):
     result_files = dict()
     json_results = det2jsonv2(dataset, results)
-    result_files['bbox'] = '{}.{}.json'.format(out_file, 'bbox')
-    result_files['proposal'] = '{}.{}.json'.format(out_file, 'bbox')
-    mmcv.dump(json_results, result_files['bbox'])
+    pkl.dump(json_results,open('{}.chonker'.format(out_file),'wb'))
     '''
         if isinstance(results[0], list):
             print("option uno")

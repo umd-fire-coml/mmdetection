@@ -330,7 +330,7 @@ class CascadeRCNN(BaseDetector, RPNTestMixin):
             rescale=rescale,
             cfg=rcnn_test_cfg)
         '''
-        bbox_result, conv_result = every2result(det_bboxes, det_labels, det_conv, self.bbox_head[-1].num_classes)# changed from bbox2result
+        bbox_result = every2result(det_bboxes, det_labels, det_conv, self.bbox_head[-1].num_classes)# changed from bbox2result
         ms_bbox_result['ensemble'] = bbox_result
         
         ''' # no neeeeeeeed --commented out
@@ -376,7 +376,7 @@ class CascadeRCNN(BaseDetector, RPNTestMixin):
             else:
                 
                 results = ms_bbox_result
-        return results,conv_result
+        return results
 
     def aug_test(self, img, img_meta, proposals=None, rescale=False):
         raise NotImplementedError
