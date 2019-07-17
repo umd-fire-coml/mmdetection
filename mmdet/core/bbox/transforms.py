@@ -1,3 +1,6 @@
+# Modifications:
+# Added def every2result
+
 import mmcv
 import numpy as np
 import torch

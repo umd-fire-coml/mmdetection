@@ -62,6 +62,7 @@ class DistEvalHook(Hook):
                 for idx in range(i, len(results), runner.world_size):
                     results[idx] = tmp_results[idx]
                 os.remove(tmp_file)
+            results = [[d1['bbox'] for d1 in l1] for l1 in results ]
             self.evaluate(runner, results)
         else:
             tmp_file = osp.join(runner.work_dir,

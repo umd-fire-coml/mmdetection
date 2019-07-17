@@ -89,6 +89,8 @@ def build_optimizer(model, optimizer_cfg):
 
     optimizer_cfg = optimizer_cfg.copy()
     paramwise_options = optimizer_cfg.pop('paramwise_options', None)
+    
+    
     # if no paramwise option is specified, just use the global setting
     if paramwise_options is None:
         return obj_from_dict(
@@ -159,7 +161,6 @@ def _dist_train(model, dataset, cfg, validate=False):
     runner.register_hook(DistSamplerSeedHook())
     # register eval hooks
     if validate:
-        print("got here")
         val_dataset_cfg = cfg.data.val
         if isinstance(model.module, RPN):
             # TODO: implement recall hooks for other datasets

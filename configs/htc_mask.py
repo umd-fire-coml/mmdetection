@@ -2,16 +2,24 @@
 model = dict(
     type='HybridTaskCascade',
     num_stages=3,
-    pretrained='modelzoo://resnet50',
+    pretrained='open-mmlab://resnext101_64x4d',
     interleaved=True,
     mask_info_flow=True,
     backbone=dict(
-        type='ResNet',
-        depth=50,
+        type='ResNeXt',
+        depth=101,
+        groups=64,
+        base_width=4,
         num_stages=4,
         out_indices=(0, 1, 2, 3),
         frozen_stages=1,
-        style='pytorch'),
+        style='pytorch',
+        dcn=dict(
+            modulated=False,
+            groups=64,
+            deformable_groups=1,
+            fallback_on_stride=False),
+        stage_with_dcn=(False, True, True, True)),
     neck=dict(
         type='FPN',
         in_channels=[256, 512, 1024, 2048],
@@ -208,48 +216,45 @@ test_cfg = dict(
         max_per_img=100,
         mask_thr_binary=0.5),
     keep_all_stages=False)
-# dataset settings
-dataset_type = 'CocoDataset'
-data_root = 'data/coco/'
-img_norm_cfg = dict(
+dataset_type = 'KittiDataset' # this refers to datasets/kitti.py
+data_root = 'data/kitti/' # everything is relative to the mmdetection
+img_norm_cfg = dict( # this normalizes each pixel value of each channel in BGR format
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
+
 data = dict(
-    imgs_per_gpu=2,
-    workers_per_gpu=2,
+    imgs_per_gpu=4, 
+    workers_per_gpu=4,
     train=dict(
         type=dataset_type,
-        ann_file=data_root + 'annotations/instances_train2017.json',
-        img_prefix=data_root + 'train2017/',
+        ann_file=data_root + 'annotations/instances_runtrain.json',
+        img_prefix= data_root + 'training/image_2/', # path to the image directory 
         img_scale=(1333, 800),
         img_norm_cfg=img_norm_cfg,
         size_divisor=32,
         flip_ratio=0.5,
-        seg_prefix=data_root + 'stuffthingmaps/train2017/',
-        seg_scale_factor=1 / 8,
-        with_mask=True,
+        with_mask=False,
         with_crowd=True,
-        with_label=True,
-        with_semantic_seg=True),
+        with_label=True),
     val=dict(
         type=dataset_type,
-        ann_file=data_root + 'annotations/instances_val2017.json',
-        img_prefix=data_root + 'val2017/',
+        ann_file=data_root + 'annotations/instances_runval.json',
+        img_prefix=data_root + 'training/image_2',
         img_scale=(1333, 800),
         img_norm_cfg=img_norm_cfg,
         size_divisor=32,
         flip_ratio=0,
-        with_mask=True,
+        with_mask=False,
         with_crowd=True,
         with_label=True),
     test=dict(
         type=dataset_type,
-        ann_file=data_root + 'annotations/instances_val2017.json',
-        img_prefix=data_root + 'val2017/',
+        ann_file=data_root + 'annotations/temp.json',
+        img_prefix=data_root + 'testing/image_2', 
         img_scale=(1333, 800),
         img_norm_cfg=img_norm_cfg,
         size_divisor=32,
         flip_ratio=0,
-        with_mask=True,
+        with_mask=False,
         with_label=False,
         test_mode=True))
 # optimizer
@@ -261,7 +266,7 @@ lr_config = dict(
     warmup='linear',
     warmup_iters=500,
     warmup_ratio=1.0 / 3,
-    step=[8, 11])
+    step=[16, 19])
 checkpoint_config = dict(interval=1)
 # yapf:disable
 log_config = dict(
@@ -272,10 +277,10 @@ log_config = dict(
     ])
 # yapf:enable
 # runtime settings
-total_epochs = 12
+total_epochs = 20
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/htc_r50_fpn_1x'
+work_dir = './work_dirs/htc_dconv_c3-c5_mstrain_400_1400_x101_64x4d_fpn_20e'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]

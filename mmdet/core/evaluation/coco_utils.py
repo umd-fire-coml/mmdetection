@@ -5,6 +5,9 @@ from pycocotools.cocoeval import COCOeval
 from six.moves import cPickle as pkl
 from .recall import eval_recalls
 
+#results2json changed: supposed to switch between input types, but forced to dict
+#det2jsonv2 added
+
 
 def coco_eval(result_files, result_types, coco, max_dets=(100, 300, 1000)):
     for res_type in result_types:
@@ -179,29 +182,25 @@ def segm2json(dataset, results):
 
 def results2json(dataset, results, out_file):
     result_files = dict()
-    json_results = det2jsonv2(dataset, results)
-    pkl.dump(json_results,open('{}.chonker'.format(out_file),'wb'))
-    '''
-        if isinstance(results[0], list):
-            print("option uno")
-            json_results = det2json(dataset, results)
-            result_files['bbox'] = '{}.{}.json'.format(out_file, 'bbox')
-            result_files['proposal'] = '{}.{}.json'.format(out_file, 'bbox')
-            mmcv.dump(json_results, result_files['bbox'])
-        elif isinstance(results[0], tuple):
-            print("option dos")
-            json_results = segm2json(dataset, results)
-            result_files['bbox'] = '{}.{}.json'.format(out_file, 'bbox')
-            result_files['proposal'] = '{}.{}.json'.format(out_file, 'bbox')
-            result_files['segm'] = '{}.{}.json'.format(out_file, 'segm')
-            mmcv.dump(json_results[0], result_files['bbox'])
-            mmcv.dump(json_results[1], result_files['segm'])
-        elif isinstance(results[0], np.ndarray):
-            print("option tres")
-            json_results = proposal2json(dataset, results)
-            result_files['proposal'] = '{}.{}.json'.format(out_file, 'proposal')
-            mmcv.dump(json_results, result_files['proposal'])
-        else:
-            raise TypeError('invalid type of results')
-    '''
-    return result_files
+    if isinstance(results[0],list) and isinstance(results[0][0],dict):
+        json_results = det2jsonv2(dataset, results)
+        pkl.dump(json_results,open('{}.output'.format(out_file),'wb'))
+        return result_files
+    if isinstance(results[0], list):
+        json_results = det2json(dataset, results)
+        result_files['bbox'] = '{}.{}.json'.format(out_file, 'bbox')
+        result_files['proposal'] = '{}.{}.json'.format(out_file, 'bbox')
+        mmcv.dump(json_results, result_files['bbox'])
+    elif isinstance(results[0], tuple):
+        json_results = segm2json(dataset, results)
+        result_files['bbox'] = '{}.{}.json'.format(out_file, 'bbox')
+        result_files['proposal'] = '{}.{}.json'.format(out_file, 'bbox')
+        result_files['segm'] = '{}.{}.json'.format(out_file, 'segm')
+        mmcv.dump(json_results[0], result_files['bbox'])
+        mmcv.dump(json_results[1], result_files['segm'])
+    elif isinstance(results[0], np.ndarray):
+        json_results = proposal2json(dataset, results)
+        result_files['proposal'] = '{}.{}.json'.format(out_file, 'proposal')
+        mmcv.dump(json_results, result_files['proposal'])
+    else:
+        raise TypeError('invalid type of results')

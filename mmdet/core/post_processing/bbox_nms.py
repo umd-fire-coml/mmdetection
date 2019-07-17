@@ -60,7 +60,6 @@ def multiclass_nms(multi_bboxes,
     else:
         bboxes = multi_bboxes.new_zeros((0, 5))
         labels = multi_bboxes.new_zeros((0, ), dtype=torch.long)
-    #print(bboxes)
     return bboxes, labels
 
 def multiclass_nmsv2(multi_bboxes, multi_conv,
