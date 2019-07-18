@@ -177,7 +177,7 @@ def every2result(bboxes, labels, convfeat, num_classes):
         bboxes = bboxes.cpu().numpy()
         labels = labels.cpu().numpy() 
         convfeat = convfeat.cpu().numpy()
-        return [{'bbox':bboxes[labels == i, :],'feat':convfeat[labels==i,:]} for i in range(num_classes - 1)]
+        return [{'bbox':bboxes[labels == i, :],'feat':convfeat[labels==i,:]} for i in range(num_classes - 1)]# this groups things by category id though boolean index slicing. the slicing returns true for every index in labels that it passes. It might be a better thing to change it from a list of dictionars of lists, but ah well
 
 def distance2bbox(points, distance, max_shape=None):
     """Decode distance prediction to bounding box.

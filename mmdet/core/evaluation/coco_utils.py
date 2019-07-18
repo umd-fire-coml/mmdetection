@@ -136,8 +136,8 @@ def det2jsonv2(dataset, results): # results is a list of tuples
             for i in range(dobbaf['bbox'].shape[0]):
                 data = dict()
                 data['image_id'] = img_id
-                data['bbox'] = xyxy2xywh(dobbaf['bbox'][i])
-                data['score'] = float(dobbaf['bbox'][i][4])
+                data['bbox'] = xyxy2xywh(dobbaf['bboxes'][i])
+                data['score'] = float(dobbaf['bboxes'][i][4])
                 data['category_id'] = dataset.cat_ids[label]
                 data['conv'] = dobbaf['feat'][i]
                 json_results.append(data)
@@ -181,6 +181,8 @@ def segm2json(dataset, results):
 
 
 def results2json(dataset, results, out_file):
+    """converts the results from the model to json format,
+    results comes from core/bbox/transforms.every2result"""
     result_files = dict()
     if isinstance(results[0],list) and isinstance(results[0][0],dict):
         json_results = det2jsonv2(dataset, results)

@@ -128,6 +128,10 @@ def parse_args():
 def main():
     args = parse_args()
 
+    assert args.out or args.show, \
+        ('Please specify at least one operation (save or show the results) '
+         'with the argument "--out" or "--show"')
+
     if args.out is not None and not args.out.endswith(('.pkl', '.pickle')):
         raise ValueError('The output file must be a pkl file.')
 
@@ -181,11 +185,11 @@ def main():
             print('Starting evaluate {}'.format(' and '.join(eval_types)))
             if eval_types == ['proposal_fast']:
                 result_file = args.out
-                #coco_eval(result_file, eval_types, dataset.coco)
+                coco_eval(result_file, eval_types, dataset.coco)
             else:
                 if not isinstance(outputs[0], dict):
                     result_files = results2json(dataset, outputs, args.out)
-                    #coco_eval(result_files, eval_types, dataset.coco)
+                    coco_eval(result_files, eval_types, dataset.coco)
                 else:
                     for name in outputs[0]:
                         print('\nEvaluating {}'.format(name))
@@ -193,7 +197,7 @@ def main():
                         result_file = args.out + '.{}'.format(name)
                         result_files = results2json(dataset, outputs_,
                                                     result_file)
-                        #coco_eval(result_files, eval_types, dataset.coco)
+                        coco_eval(result_files, eval_types, dataset.coco)
 
 
 if __name__ == '__main__':

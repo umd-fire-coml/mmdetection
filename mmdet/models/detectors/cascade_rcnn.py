@@ -376,6 +376,7 @@ class CascadeRCNN(BaseDetector, RPNTestMixin):
             else:
                 
                 results = ms_bbox_result
+        # results will be post-processed by mmdectection/tools/test.collect_results by multi_gpu_test
         return results
 
     def aug_test(self, img, img_meta, proposals=None, rescale=False):
